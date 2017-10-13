@@ -60,25 +60,7 @@ public class MainActivity extends AppCompatActivity implements CategoryAdapter.O
             recyclerviewTeams.setOnScrollChangeListener(new View.OnScrollChangeListener() {
                 @Override
                 public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-                    if (needMove) {
-                        needMove = false;
-                        //获取要置顶的项在当前屏幕的位置，mIndex是记录的要置顶项在RecyclerView中的位置
-                        int n = movePosition - mTeamsLayoutManager.findFirstVisibleItemPosition();
-                        if (0 <= n && n < recyclerviewTeams.getChildCount()) {
-                            //获取要置顶的项顶部离RecyclerView顶部的距离
-                            int top = recyclerviewTeams.getChildAt(n).getTop() - dip2px(MainActivity.this, 28);
-                            //最后的移动
-                            recyclerviewTeams.scrollBy(0, top);
-                        }
-                    }
-                    //第一个完全显示的item和最后一个item。
-                    if(!isChangeByCategoryClick){
-                        int firstVisibleItem = mTeamsLayoutManager.findFirstCompletelyVisibleItemPosition();
-                        int sort = teamsAndHeaderAdapter.getSortType(firstVisibleItem);
-                        changeSelected(sort);
-                    }else {
-                        isChangeByCategoryClick = false;
-                    }
+                    doOnItemViewScroll();
                 }
             });
         } else {
@@ -86,51 +68,59 @@ public class MainActivity extends AppCompatActivity implements CategoryAdapter.O
                 @Override
                 public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                     super.onScrolled(recyclerView, dx, dy);
-                    if (needMove) {
-                        needMove = false;
-                        //获取要置顶的项在当前屏幕的位置，mIndex是记录的要置顶项在RecyclerView中的位置
-                        int n = movePosition - mTeamsLayoutManager.findFirstVisibleItemPosition();
-                        if (0 <= n && n < recyclerviewTeams.getChildCount()) {
-                            //获取要置顶的项顶部离RecyclerView顶部的距离
-                            int top = recyclerviewTeams.getChildAt(n).getTop() - dip2px(MainActivity.this, 28);
-                            //最后的移动
-                            recyclerviewTeams.scrollBy(0, top);
-                        }
-                    }
-                    //第一个完全显示的item和最后一个item。
-                    if(!isChangeByCategoryClick){
-                        int firstVisibleItem = mTeamsLayoutManager.findFirstCompletelyVisibleItemPosition();
-                        int sort = teamsAndHeaderAdapter.getSortType(firstVisibleItem);
-                        changeSelected(sort);
-                    }else {
-                        isChangeByCategoryClick = false;
-                    }
+                    doOnItemViewScroll();
                 }
             });
         }
     }
 
-    private boolean needMove = false;
+    private void doOnItemViewScroll() {
+//        if (needMove) {
+//            needMove = false;
+//            //获取要置顶的项在当前屏幕的位置，mIndex是记录的要置顶项在RecyclerView中的位置
+//            int n = movePosition - mTeamsLayoutManager.findFirstVisibleItemPosition();
+//            if (0 <= n && n < recyclerviewTeams.getChildCount()) {
+//                //获取要置顶的项顶部离RecyclerView顶部的距离
+//                int top = recyclerviewTeams.getChildAt(n).getTop() - dip2px(MainActivity.this, 28);
+//                //最后的移动
+//                recyclerviewTeams.scrollBy(0, top);
+//            }
+//        }
+        //右侧滚动后，与左侧联动
+        //第一个完全显示的item和最后一个item。
+        if (!isChangeByCategoryClick) {
+//            int firstVisibleItem = mTeamsLayoutManager.findFirstCompletelyVisibleItemPosition();
+            int firstVisibleItem = mTeamsLayoutManager.findFirstVisibleItemPosition();
+            int sort = teamsAndHeaderAdapter.getSortType(firstVisibleItem);
+            changeSelected(sort);
+        } else {
+            isChangeByCategoryClick = false;
+        }
+
+    }
+
+//    private boolean needMove = false;
     private int movePosition;
 
     private void moveToPosition(int n) {
-        //先从RecyclerView的LayoutManager中获取第一项和最后一项的Position
-        int firstItem = mTeamsLayoutManager.findFirstVisibleItemPosition();
-        int lastItem = mTeamsLayoutManager.findLastVisibleItemPosition();
-        //然后区分情况
-        if (n <= firstItem) {
-            //当要置顶的项在当前显示的第一个项的前面时
-            recyclerviewTeams.scrollToPosition(n);
-        } else if (n <= lastItem) {
-            //当要置顶的项已经在屏幕上显示时
-            int top = recyclerviewTeams.getChildAt(n - firstItem).getTop();
-            recyclerviewTeams.scrollBy(0, top - dip2px(this, 28));
-        } else {
-            //当要置顶的项在当前显示的最后一项的后面时
-            recyclerviewTeams.scrollToPosition(n);
-            movePosition = n;
-            needMove = true;
-        }
+//        //先从RecyclerView的LayoutManager中获取第一项和最后一项的Position
+//        int firstItem = mTeamsLayoutManager.findFirstVisibleItemPosition();
+//        int lastItem = mTeamsLayoutManager.findLastVisibleItemPosition();
+//        //然后区分情况
+//        if (n <= firstItem) {
+//            //当要置顶的项在当前显示的第一个项的前面时
+//            recyclerviewTeams.scrollToPosition(n);
+//        } else if (n <= lastItem) {
+//            //当要置顶的项已经在屏幕上显示时
+//            int top = recyclerviewTeams.getChildAt(n - firstItem).getTop();
+//            recyclerviewTeams.scrollBy(0, top - dip2px(this, 28));
+//        } else {
+//            //当要置顶的项在当前显示的最后一项的后面时
+//            recyclerviewTeams.scrollToPosition(n);
+//            movePosition = n;
+//            needMove = true;
+//        }
+        ((LinearLayoutManager)recyclerviewTeams.getLayoutManager()).scrollToPositionWithOffset(movePosition,0);
     }
 
     @Override
@@ -159,17 +149,17 @@ public class MainActivity extends AppCompatActivity implements CategoryAdapter.O
         categoryAdapter.notifyDataSetChanged();
     }
 
-    /**
-     * 根据手机分辨率从dp转成px
-     *
-     * @param context
-     * @param dpValue
-     * @return
-     */
-    public static int dip2px(Context context, float dpValue) {
-        final float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (dpValue * scale + 0.5f);
-    }
+//    /**
+//     * 根据手机分辨率从dp转成px
+//     *
+//     * @param context
+//     * @param dpValue
+//     * @return
+//     */
+//    public static int dip2px(Context context, float dpValue) {
+//        final float scale = context.getResources().getDisplayMetrics().density;
+//        return (int) (dpValue * scale + 0.5f);
+//    }
 
     private void initData() {
         categoryList = new ArrayList<>();
@@ -204,10 +194,10 @@ public class MainActivity extends AppCompatActivity implements CategoryAdapter.O
 
         List<Team> teamList5 = new ArrayList<>();
         teamList5.add(new Team("北京国安", "http://www.sinaimg.cn/ty/2015/0127/U6521P6DT20150127115830.png"));
-//        teamList5.add(new Team("广州恒大","http://www.sinaimg.cn/ty/2015/0127/U6521P6DT20150127124548.png"));
-//        teamList5.add(new Team("山东鲁能","http://www.sinaimg.cn/ty/2015/0127/U6521P6DT20150127115709.png"));
-//        teamList5.add(new Team("江苏苏宁","http://www.sinaimg.cn/ty/2016/0108/U6521P6DT20160108153302.png"));
-//        teamList5.add(new Team("上海上港","http://www.sinaimg.cn/ty/2015/0127/U6521P6DT20150127122231.png"));
+        teamList5.add(new Team("广州恒大","http://www.sinaimg.cn/ty/2015/0127/U6521P6DT20150127124548.png"));
+        teamList5.add(new Team("山东鲁能","http://www.sinaimg.cn/ty/2015/0127/U6521P6DT20150127115709.png"));
+        teamList5.add(new Team("江苏苏宁","http://www.sinaimg.cn/ty/2016/0108/U6521P6DT20160108153302.png"));
+        teamList5.add(new Team("上海上港","http://www.sinaimg.cn/ty/2015/0127/U6521P6DT20150127122231.png"));
         Category c5 = new Category("中超", teamList5);
 
 
